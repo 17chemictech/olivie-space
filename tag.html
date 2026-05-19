@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>标签 | olivie.space</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    window.SUPABASE_URL = 'https://zgavnpctmhoffuucmgml.supabase.co';
+    window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnYXZucGN0bWhvZmZ1dWNtZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNzA5NTIsImV4cCI6MjA5NDc0Njk1Mn0.8Jz_78CABoDdDgUdvAkt9yM-y-HcWuD-c0p5eUdB6H4';
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header class="tag-page-header">
+      <a href="/" class="back-link">← 返回首页</a>
+      <h1>标签：<span id="tagName">加载中...</span></h1>
+    </header>
+
+    <main class="article-grid" id="articleGrid"></main>
+  </div>
+
+  <script type="module">
+    import { getArticles } from './js/supabase.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const tag = params.get('tag') || '';
+    const tagNameEl = document.getElementById('tagName');
+    const grid = document.getElementById('articleGrid');
+
+    tagNameEl.textContent = decodeURIComponent(tag);
+
+    getArticles({ tag })
+      .then(articles => {
+        if (articles.length === 0) {
+          grid.innerHTML = '<p style="color: var(--text-muted);">该标签下暂无文章</p>';
+          return;
+        }
+
+        grid.innerHTML = articles.map(article => {
+          const date = new Date(article.published_at).toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+
+          return `
+            <a href="/article.html?slug=${article.slug}" class="article-card">
+              <div class="card">
+                <h2>${article.title}</h2>
+                <p class="excerpt">${article.excerpt || ''}</p>
+                <div class="meta">
+                  <span>${date}</span>
+                  <span>·</span>
+                  <span>${article.reading_time_minutes} 分钟</span>
+                </div>
+              </div>
+            </a>
+          `;
+        }).join('');
+      })
+      .catch(() => {
+        grid.innerHTML = '<p style="color: #f85149;">加载失败</p>';
+      });
+  </script>
+</body>
+</html>
